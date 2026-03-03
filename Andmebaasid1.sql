@@ -60,6 +60,10 @@ Email nvarchar(30),
 GenderId int
 )
 
+-----------------------------
+ -- tund nr 2 18.02.2026 --
+-----------------------------
+
 insert into Person (id, Name, Email, GenderId)
 values (1, 'Superman', 's@s.com', 2),
 (2, 'Wonerwoman', 'w@w.com', 1),
@@ -181,6 +185,9 @@ select * from Person order by Name
 -- Võtab kolm esimest rida Person tabelist
 select top 3 * from Person
 
+---------------------------
+ -- tund nr 3 25.02.2026 --
+---------------------------
 
 --näita esimesed 50% tabelist
 select top 50 percent * from Person
@@ -298,7 +305,7 @@ left join Department
 on Employees.DepartmentId = Department.Id
 group by Location
 
---rida 257
--- 4 tund
---
+-----------------------------
+ -- Tund nr 4  03.03.2026 --
+-----------------------------
 
