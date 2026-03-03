@@ -309,3 +309,65 @@ group by Location
  -- Tund nr 4  03.03.2026 --
 -----------------------------
 
+select * from Employees
+select SUM(CAST(salary as int)) from Employees --arvutab kõikide palgad kokku
+
+--lisame veeru City ja pikkus on 30
+--employees tsbelisse lisada
+alter table Employees
+add city nvarchar(30)
+
+select City, Gender, SUM(cast(salary as int)) as TotalSalary
+from Employees
+group by City, Gender
+
+--peaaegu sama päring, aga linnad on tähestikulises järjestuses'
+select City, Gender, SUM(cast(salary as int)) as TotalSalary
+from Employees
+group by City, Gender
+order by City
+
+select * from Employees
+-- on vaja teada, et mitu inimest on nimekirjas selles tabelis
+select count(*) from Employees
+
+--mitu töötajat on soo ja linna kaupa töötamas
+select City, Gender, SUM(cast(salary as int)) as TotalSalary,
+count (id) as [Total Employee(s)]
+from Employees
+group by Gender, City
+
+--kasutage kas naised või mehed kaupa
+--kasutage where
+
+select City, Gender, SUM(cast(salary as int)) as TotalSalary,
+count (id) as [Total Employee(s)]
+from Employees
+where Gender = 'Female'
+group by Gender, City
+
+-- sama tulemuseda nagu eelmine kord, kasutage: having
+select City, Gender, SUM(cast(salary as int)) as TotalSalary,
+count (id) as [Total Employee(s)]
+from Employees
+group by Gender, City
+having Gender = 'Female'
+
+-- kõik, kes teenivad rohkem, kui 4000
+select * from Employees where sum(cast(salary as int)) > 4000
+
+--teeme varjandi, kus saame tulemuse
+select Gender,City, SUM(cast(salary as int)) as TotalSalary,
+count (id) as [Total Employee(s)]
+from Employees
+group by Gender, City
+having SUM(cast(salary as int)) > 4000
+
+--loome tabeli, milles hakatakse automaatselt nummerdama Id-d
+create table Test1
+(
+Id int identity(1,1),
+value nvarchar(20)
+)
+insert into Test1 values('x')
+select * from Test1
