@@ -1,5 +1,5 @@
      
-	    -- Tund 11.02.26 --
+	    -- Tund nr 1 11.02.26 --
 ---------------------------------------
 
 -- teeme andmebaas'i e. db(data Base)
@@ -465,12 +465,14 @@ or Department.id is null
 -- inner-,Left-, Right-, cross- ja full join
 -- tabeleid sellesse andmebaasi juurde ei tohi teha AdventureWorksLT2019
 
---Õpetaja kood--
+ --Õpetaja kood--
 ------------------
+--      vvv     --
 --inner Join
 -- mõnikurd peab muutuja ette kirjutama tabeli nimetuse
 -- nagu on product.Name, et editor saaks aru, et kumma 
 -- tabeli muutujat soovitakse kasutada ja ei tekiks segadust
+
 select Product.name as [Product Name], ProductNumber, ListPrice
 , ProductModel.Name as [Product Model Name], Product.ProductModelID,
 ProductModel.ProductModelID
@@ -482,18 +484,9 @@ inner join SalesLT.ProductModel
 -- mis ProductModeli tabelis on primaarvõti
 on Product.ProductModelId = ProductModel.ProductModelId
 
--- left join
-
--- right join
-
--- full join
-
--- cross join
-
---------------------------------------------------------
-
---Oma kood--
+  --Minu kood--
 ------------------
+--      vvv     --
 -- inner join
 select p.Name AS ProductName, pc.Name AS CategoryName
 from SalesLT.Product p
@@ -522,3 +515,38 @@ on p.ProductCategoryID = pc.ProductCategoryID
 select p.Name as ProductName, pc.Name as CategoryName
 from SalesLT.Product p
 cross join SalesLT.ProductCategory pc
+
+-----------------------------
+ -- Tund nr 6  12.03.2026 --
+-----------------------------
+
+--isnull funktsiooni kasutamine
+select Isnull('Ingvar','No Manager') as Manager
+
+-- NULL asemel kuvab No Manager
+select coalesce(NULL, 'No Manager') as Manager
+
+alter table Employees
+add ManagerId int
+
+-- neile, kellel ei ole ülemust, siis paneb neile 'No Manager' teksti
+-- Kasutage left join
+
+select E.Name as Employee, isnull(M.Name, 'No Manager') as Manager
+from Employees E
+left join Employees M
+on E.ManagerId = M.Id
+
+-- kasutame inner joini
+--kuvab ainult ManagerId all olevate isikute väärtuseid
+select E.Name as Employee, isnull(M.Name, 'No Manager') as Manager
+from Employees E
+inner join Employees M
+on E.ManagerId = M.Id
+
+-- kõik saavad kõikide ülemused olla
+select E.Name as Employee, M.Name as Manager
+from Employees E
+cross join Employees M
+
+--lisame tabelisse uued veeru
