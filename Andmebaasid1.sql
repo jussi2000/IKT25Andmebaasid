@@ -793,4 +793,8 @@ print 'Name = ' + @FirstName
 
 --output tagastab muudetud read kohe päringu tulemusena
 --see on salvestatut protsetuuris ja ühe väärtuse tagastamine
---out ei anna mitte midagi
+--out ei anna mitte midagi, kui seda ei määra execute käsus
+
+-----------------------------
+ -- Tund nr 8  19.03.2026 -- 
+-----------------------------
