@@ -988,3 +988,77 @@ values (1, 'Sam', '1980 12-30-00:00:00.000'),
 (2, 'Pam', '1982-09-01 12:02:36.260'),
 (3, 'John', '1985-08-22 12:03:30.370'),
 (4, 'Sara', '1979-11-29 12:59:30.670')
+
+-----------------------------
+ -- Tund nr 9  24.03.2026 -- 
+-----------------------------
+
+-- Kuidas võtta ühest veerust andemid ja selle abil luua uued veerud
+-- vaatab DoB(DateOfBirth) veerust päeva ja kuvab päeva nimetuse sõnana
+
+select Name, DateOfBirth, DATENAME(WEEKDAY, DateOfBirth) as [day],
+     -- vaatab VoB veerust kuupäeva ja kuvab kuu nr
+     MONTH(DateOfBirth) as MonthNumber,
+	 -- vaatab DoB veerust kuud ja kuvab sõnana
+	 DATENAME(MONTH, DateOfBirth) as [MonthName],
+	 -- võtab DoB veerust aasta
+	 YEAR(DateOfBirth) as [Year]
+from EmployeeWithDates
+
+-- kuvab 3 kuna USA nädal algab pühapäevaga
+select DATEPART(WEEKDAY, '2026-03-24 12:59:30.670')
+-- tehke sama, aga arvutage kuu-d
+select DATEPART(MONTH, '2026-03-24 12:59:30.670')
+-- liidab stringis olevale kp 20 päeva juurde
+select DATEADD(DAY, 20, '2026-03-24 12:59:30.670')
+-- lahutab 20 päeva maha
+select DATEADD(DAY, -20, '2026-03-24 12:59:30.670')
+-- kuvab kahe stringis oleva kuudevahelist aega nr-na
+select DATEdiff(MONTH, '11/20/2026', '01/20/2024')
+-- tehke sama, aga kasutage aastat
+select DATEdiff(year, '11/20/2026', '01/20/2028')
+
+-- uuri mis on funktsioon MS SQL'is [1.]
+-- miks seda vaja on [2.]
+-- mis on selle eelised ja puudused
+------------------------------------------
+-- [1.] MS SQL funktsioon on andmebaasis salvestatud alamprogramm.
+
+-- [2.] Pakkuda DB-s korduvkasutatud funktsionaalsust
+
+-- [3.] Funktsiooni eelised: 
+-- Kood on jagatud väiksemateks, hallatavateks osadeks;
+-- Saab kasutada SELECT, WHERE, HAVING klauslites; 
+-- Muutes funktsiooni sisu, uueneb loogika kõikjal.
+
+-- [3.] Funktsiooni puudused: 
+-- Funktsioonid ei saa muuta andmebaasi olekut;
+-- Funktsioonides ei saa kasutada keerukat TRY...CATCH veatöötlust;
+-- Skalaar-funktsioonid võivad suures andmemahus aeglustada päringuid,
+-- kuna neid käivitatakse iga rea kohta eraldi.
+
+create function fnComputeAge(@DOB datetime)
+returns nvarchar(50)
+as begin
+    declare @tempdate datetime, @years int, @months int, @days int
+	select @tempdate = @DOB
+
+	select @years = DATEDIFF(YEAR, @tempdate, GETDATE()) - case when (month(@DOB)>
+	MONTH(GETDATE())) or (MONTH(@DOB) = MONTH(GETDATE())and day(@DOB) > DAY(GETDATE()))
+	then 1 else 0 end
+	select @tempdate = DATEADD(YEAR, @years, @tempdate)
+
+	select @months = DATEDIFF(MONTH, @tempdate, GETDATE()) - case when DAY(@DOB) > 
+	DAY(getdate()) then 1 else 0 end
+	select @tempdate = DATEADD(MONTH, @months, @tempdate)
+
+	select @days = datediff(day, @tempdate, GETDATE())
+
+	declare @Age nvarchar(50)
+	    set @Age = CAST (@years as nvarchar(4)) + 'Years' + CAST(@months as nvarchar(2))
+		+ 'Months' + CAST (@days as nvarchar(2)) + 'Days old'
+    return @Age
+end
+
+select Id, Name, DateOfBirth, dbo.fnComputeAge(DateOfBirth) 
+as Age from EmployeeWithDates
