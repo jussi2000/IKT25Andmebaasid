@@ -1081,7 +1081,64 @@ select CAST(getdate() as date) --tänane kuupäev
 -- Tänane kuupäev, aga kasutate convert'i, et kuvada stringiga
 SELECT CONVERT(VARCHAR(10), GETDATE(), 104) AS Tänane_KuupäevStringiga;
 
---matemaatilised funktsioonid
-select ABS(-5) --abs on absoluutväärtusega number ja tulemuseks saame ilma miinus märgita 5
-select CEILING(4.2) --celing on funktsioon, mis ümardab ülespoole ja tulemuseks saame 5
-select CEILING(-4.2) --celing ümardab ka miinus numbri ülespoole, mis tähendab, et saame -4 
+-- matemaatilised funktsioonid
+select ABS(-5) -- abs on absoluutväärtusega number ja tulemuseks saame ilma miinus märgita 5
+select CEILING(4.2) -- celing on funktsioon, mis ümardab ülespoole ja tulemuseks saame 5
+select CEILING(-4.2) -- celing ümardab ka miinus numbri ülespoole, mis tähendab, et saame -4
+select FLOOR(15.2) -- floor on funktsioon, mis ümbritseb alla ja tulemuseks saame 15
+select FLOOR(-15.2) -- floor ümardab ka miinus numbrid alla, mis tähendab, et saame -16
+select POWER(2, 4) -- kaks astemes neli
+select SQUARE(9) -- antud juhul 9 ruudus
+select SQRT(16) -- antud juhul 16 ruutjuur
+
+select RAND() -- rand on funktsioon, mis genereerib
+--juhusliku numbri vehemikus 0 kuni 1
+
+--kuidas saada täisnumber igakord?
+SELECT FLOOR(RAND() * 100); --KORRUTAB SAJAGA IGA SUVALISE NUMBRI
+--
+--iga kord näitab 10 suvalist numbrit
+declare @counter int
+set @counter = 1
+while (@counter <= 10)
+BEGIN
+    PRINT FLOOR(RAND() * 100)
+    SET @counter = @counter + 1;
+END
+
+select ROUND(850.556, 2) -- random funktsioon, mis ümardab kaks kumakohta
+-- ning tulemuseks saame 850.56
+select ROUND(850.556,2 ,1)
+-- round funktsioon, mis ümardab kaks komakohta ja
+-- kui kolmas parameeter on 1, siis ümardab alla
+select ROUND(850.556, 1)
+-- round on funktsioon, mis ümardab ühe komakoha ja
+-- tulemuseks saame 750.6
+select ROUND(850.556,1, 1) --ümardab alla ühe komakoha pealt
+-- ning tulemuseks saame 850.5
+select ROUND(850.556, -2) -- ümardab täisnumbri ülessepoole 
+-- ning tulemuseks saame 900
+select ROUND(850.556, -1) -- ümardab täisnumbri alla ning tulemuseks on 850
+
+---
+create function dbo.CalculateAge(@DOB date)
+returns int
+as begin 
+declare @Age int
+
+   set @Age = DATEDIFF(YEAR, @DOB, GETDATE()) -
+   CASE 
+      when (month(@DOB) > month(getdate())) or
+           (month(@DOB) > month(getdate()) and day(@DOB) > day(getdate()))
+		   then 1 else 0 end
+	return @Age
+end
+
+--kui valmis, siis proovige seda funktsiooni
+--ja vaadake, kas annab õige vanuse
+exec dbo.CalculateAge '1980-12-30'
+
+--arvutab välja, kui vana on isik ja võtab srvesse kuud ning päevad
+--antud juhul näitab, kes on üle 36 a vanad
+select Id, dbo.CalculateAge(DateOfBirth) as Age from EmployeeWithDates
+where dbo.CalculateAge(DateOfBirth) > 36
