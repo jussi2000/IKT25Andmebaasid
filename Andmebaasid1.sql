@@ -1062,3 +1062,26 @@ end
 
 select Id, Name, DateOfBirth, dbo.fnComputeAge(DateOfBirth) 
 as Age from EmployeeWithDates
+
+-----------------------------
+ -- Tund nr 10  31.03.2026 -- 
+-----------------------------
+
+-- kui kasutame seda funktsiooni, siis saame teada tänase päeva vahet sringis välja tooduga
+select dbo.fnComputeAge('02/24/2010') as Age
+
+-- nnpeale DOB muutjat näitab, et mismoodi kuvada DOB-d
+select Id, Name, DateOfBirth,
+CONVERT(nvarchar, DateOfBirth, 109) as ConvertedDOB
+from EmployeeWithDates
+
+select Id,Name, Name + ' - ' + cast(Id as nvarchar) as [Name-Id] from EmployeeWithDates
+
+select CAST(getdate() as date) --tänane kuupäev
+-- Tänane kuupäev, aga kasutate convert'i, et kuvada stringiga
+SELECT CONVERT(VARCHAR(10), GETDATE(), 104) AS Tänane_KuupäevStringiga;
+
+--matemaatilised funktsioonid
+select ABS(-5) --abs on absoluutväärtusega number ja tulemuseks saame ilma miinus märgita 5
+select CEILING(4.2) --celing on funktsioon, mis ümardab ülespoole ja tulemuseks saame 5
+select CEILING(-4.2) --celing ümardab ka miinus numbri ülespoole, mis tähendab, et saame -4 
