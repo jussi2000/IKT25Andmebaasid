@@ -1529,3 +1529,16 @@ select * from vw_EmployeesByDetails
 -- saab kasutada andmebaasi skeemi keerukuse lihtsutamiseks,
 -- mitte IT-inimesele
 -- piiratud ligipääs andmetele, ei näe köiki veerge
+
+-- teeme view, mis näeb ainult IT- töötajaid
+create view vTTEmployeesInDepartment
+as
+select FirstName, Salary, Gender, DepartmentName
+from Employees
+join Department
+on Department.id = Employees.DepartmentId
+where Department.DepartmentName = 'IT'
+--ülevalpool olevat päringut saab liigitada reataseme turvalisuse
+-- alla. Tahan ainult näidata IT osakonna töötajaid
+
+select * from vTTEmployeesInDepartment
