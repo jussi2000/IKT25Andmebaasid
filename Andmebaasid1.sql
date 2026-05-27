@@ -2494,15 +2494,15 @@ Left join ProductSales ps on p.Id = ps.ProductId
 where ps.ProductId is null
 
 ------------------------------------------------
-      *     +                                 +
-     ---                        +
-   + ''''                                  +
+      *     +                        .         +
+     ---          .            +
+   + ''''                                +
     -----             +      
-   -------                   _
+   -------                   _    .
   ---------  +  A-A        _|_|_
 + ''''''''''   ('w')       ('o')            +
  -----------   (   )     --( . )--    +
-     | |       || || >    (  .  )
+  .  | |       || || >    (  .  )
  ------------------------------------------------
  
  --teeme subquery, kus kasutatakse selecti
@@ -2590,6 +2590,9 @@ begin
 	print @Counter
 	set @Counter = @Counter + 1
 end
+
+select * from product
+select * from ProductSales
 -----------------------------------------
 create table Product
 (
@@ -2605,3 +2608,111 @@ ProductId int foreign key references Product(Id),
 UnitPrice int,
 QuantitySold int
 )
+
+-----------------------------
+ -- Tund nr 17  27.05.2026 - 
+-----------------------------
+
+--võrdleme subquerit ja JOIN-i
+select Id, Name, Description
+from Product
+where Id in
+(
+select Product.Id from ProductSales
+)
+-- 5 Milj rida ja 30 sek
+
+--teeme cache puhtaks, et uut päringut ei oleks kuskile vahemällu selvestatud
+checkpoint;
+go
+dbcc DROPCLEANBUFFERS; -- puhastab päringu cache-i
+go
+dbcc FREEPROCCACHE; -- puhastab täitva planeeritud cache-i
+go
+
+--teeme sama tabelite peale inner join päringu
+--product ja ProductSales
+
+select distinct Product.id, Name, Description
+from Product
+inner join ProductSales
+on Product.Id = ProductSales.ProductId
+-- 100 000 rida 1 sek
+------------------------------------------------------------
+select * from product
+select * from ProductSales
+------------------------------------------------------------
+select Id, Name, Description
+from Product
+where not exists
+(
+select * from ProductSales where ProductId = Product.Id
+)
+-- 5,7 milj 30 sek
+--------------------------------------------------------------
+--kasutage left jselect Name, Gender, Salary, DepartmentName
+select product.Id, Name, Description
+from product
+left join ProductSales
+on Product.Id = ProductSales.ProductId
+where productId is null
+-- 5.7 Milj 32 sek
+---------------------------------------------------------------------------
+-- CURSOR'id --
+---------------
+
+--- relatsiooniliste DB-de haldussüsteemid saavad väga hästi hakkama
+--- SETS-ga. SETS lubab mitut päringut kombineerida üheks tulemuseks.
+--- Sinna alla käivad UNION, INTERSECT ja EXCEPT.
+
+update ProductSales set UnitPrice = 50
+where ProductSales.ProductId = 101
+
+--- kui on vaja rea kaupa andmeid töödelda, siis kõige parem oleks kasutada
+--- Cursoreid. Samas on need jõudlusele halvad ja võimalusel vältida.
+--- Soovitav oleks kasutada JOIN-i.
+
+-- Cursorid jagunevad omakorda neljaks:
+-- 1. Forward-Only e edasi-ainult
+-- 2. Static e staatilised
+-- 3. Keyset e võtmele seadistatud
+-- 4. Dynamic e dünaamiline
+
+--Cursor'i näide:
+if the ProductName = 'Product - 55', set UnitPrice to 55
+
+-- nüüd algab õige cursor
+-------------------------
+declare @ProductId int
+--deklareerime cursori 
+declare ProductIdCursor cursor for
+select ProductId from ProductSales 
+-- open avaldusega täidab select avaldust 
+-- ja sisestab tulemuse 
+open ProductIdCursor
+
+fetch next from ProductIdCursor into @ProductId
+--- kui tulemuses on veel ridu, siis @@FETCH_STATUS  on 0
+while(@@FETCH_STATUS = 0)
+begin 
+  declare @ProductName nvarchar(50)
+  select @ProductName = Name from Product where Id = @ProductId
+
+  if(@ProductName = 'Product - 55')
+  begin 
+    update ProductSales set UnitPrice = 55 where ProductId = @ProductId
+end
+
+else if(@ProductName = 'Product - 65')
+  begin 
+    update ProductSales set UnitPrice = 65 where ProductId = @ProductId
+end
+
+else if(@ProductName = 'Product - 1000')
+  begin 
+    update ProductSales set UnitPrice = 1000 where ProductId = @ProductId
+end
+  fetch next from ProductIdCursor into @ProductId
+end
+
+select * from Product 
