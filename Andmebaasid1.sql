@@ -2978,8 +2978,55 @@ select * from Inventory
 
 -- 1. käsklus
 -- 1 transaction
-begin
+begin tran
 update Inventory set ItemsInStock = 9 where Id = 1
 --klientidele tuleb arve
 waitfor delay '00:00:15'
 --ebapiisav saldojääk, teeb rollback'i
+rollback tran
+
+-- 2 käsklus
+-- samal ajal tegin uue päringu
+-- kus kohe peale esimest käsklust käivitan
+-- teise käskluse
+-- 2 transaction
+set tran isolation level read uncommited
+select * from Inventory where Id = 1
+-- 3 käsklus
+-- nüüd panen selle käskluse tööle
+-- käivita, kui käsklus 1 on möödas
+select * from Inventory (nolock) where Id = 1
+
+
+-- Lost update e kadunud uuendused
+select * from Inventory
+
+-- 1. tran
+set tran isolation level repeatable read
+begin tran
+declare @ItemsInStock int
+
+select @ItemsInStock = @ItemsInStock
+from Inventory where Id = 1
+
+waitfor delay '00:00:15'
+set @ItemsInStock = @ItemsInStock where Id = 1
+
+print @ItemsInStock
+commit transaction
+
+
+-- samal ajal panen teise transaction'i tööle
+set tran isolation level repeatable read
+begin tran
+declare @ItemsInStock int
+
+select @ItemsInStock = @ItemsInStock
+from Inventory where Id = 1
+
+waitfor delay '00:00:01'
+set @ItemsInStock = @ItemsInStock - 2
+where Id = 1
+
+print @ItemsInStock
+commit tran
